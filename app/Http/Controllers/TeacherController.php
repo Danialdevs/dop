@@ -8,20 +8,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
-class StudentController extends Controller
+class TeacherController extends Controller
 {
     public function index(): View
     {
-        $students = User::where('role', 'student')
+        $teachers = User::where('role', 'teacher')
             ->orderBy('name')
             ->get();
 
-        return view('students.index', compact('students'));
+        return view('teachers.index', compact('teachers'));
     }
 
     public function create(): View
     {
-        return view('students.create');
+        return view('teachers.create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -40,42 +40,42 @@ class StudentController extends Controller
             'iin' => $validated['iin'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => 'student',
+            'role' => 'teacher',
             'phone' => $validated['phone'] ?? null,
             'birth_date' => $validated['birth_date'] ?? null,
             'is_active' => true,
         ]);
 
-        return redirect()->route('students.index')->with('status', 'Ученик создан.');
+        return redirect()->route('teachers.index')->with('status', 'Учитель создан.');
     }
 
-    public function show(User $student): View
+    public function show(User $teacher): View
     {
-        abort_unless($student->role === 'student', 404);
+        abort_unless($teacher->role === 'teacher', 404);
 
-        return view('students.show', compact('student'));
+        return view('teachers.show', compact('teacher'));
     }
 
-    public function edit(User $student): View
+    public function edit(User $teacher): View
     {
-        abort_unless($student->role === 'student', 404);
+        abort_unless($teacher->role === 'teacher', 404);
 
-        return view('students.edit', compact('student'));
+        return view('teachers.edit', compact('teacher'));
     }
 
-    public function update(Request $request, User $student): RedirectResponse
+    public function update(Request $request, User $teacher): RedirectResponse
     {
-        abort_unless($student->role === 'student', 404);
+        abort_unless($teacher->role === 'teacher', 404);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'iin' => ['required', 'string', 'regex:/^\d{12}$/', 'unique:users,iin,' . $student->id],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $student->id],
+            'iin' => ['required', 'string', 'regex:/^\d{12}$/', 'unique:users,iin,' . $teacher->id],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $teacher->id],
             'phone' => ['nullable', 'string', 'max:50'],
             'birth_date' => ['nullable', 'date'],
         ]);
 
-        $student->update([
+        $teacher->update([
             'name' => $validated['name'],
             'iin' => $validated['iin'],
             'email' => $validated['email'],
@@ -83,37 +83,37 @@ class StudentController extends Controller
             'birth_date' => $validated['birth_date'] ?? null,
         ]);
 
-        return redirect()->route('students.index')->with('status', 'Ученик обновлён.');
+        return redirect()->route('teachers.index')->with('status', 'Учитель обновлён.');
     }
 
-    public function editPassword(User $student): View
+    public function destroy(User $teacher): RedirectResponse
     {
-        abort_unless($student->role === 'student', 404);
+        abort_unless($teacher->role === 'teacher', 404);
 
-        return view('students.password', compact('student'));
+        $teacher->delete();
+
+        return redirect()->route('teachers.index')->with('status', 'Учитель удален.');
     }
 
-    public function updatePassword(Request $request, User $student): RedirectResponse
+    public function editPassword(User $teacher): View
     {
-        abort_unless($student->role === 'student', 404);
+        abort_unless($teacher->role === 'teacher', 404);
+
+        return view('teachers.password', compact('teacher'));
+    }
+
+    public function updatePassword(Request $request, User $teacher): RedirectResponse
+    {
+        abort_unless($teacher->role === 'teacher', 404);
 
         $validated = $request->validate([
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $student->update([
+        $teacher->update([
             'password' => Hash::make($validated['password']),
         ]);
 
-        return redirect()->route('students.show', $student)->with('status', 'Пароль обновлён.');
-    }
-
-    public function destroy(User $student): RedirectResponse
-    {
-        abort_unless($student->role === 'student', 404);
-
-        $student->delete();
-
-        return redirect()->route('students.index')->with('status', 'Ученик удален.');
+        return redirect()->route('teachers.show', $teacher)->with('status', 'Пароль обновлён.');
     }
 }

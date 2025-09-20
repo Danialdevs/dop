@@ -61,6 +61,18 @@
                 'pattern' => 'groups*',
             ],
             [
+                'label' => 'Журнал',
+                'url' => url('/journal'),
+                'icon' => 'ph ph-clipboard-text',
+                'pattern' => 'journal*',
+            ],
+            [
+                'label' => 'Учителя',
+                'url' => url('/teachers'),
+                'icon' => 'ph ph-chalkboard-teacher',
+                'pattern' => 'teachers*',
+            ],
+            [
                 'label' => 'Ученики',
                 'url' => url('/students'),
                 'icon' => 'ph ph-identification-card',

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\AcademicYear;
 use App\Models\Course;
 use App\Models\Group;
+use App\Models\Lesson;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -56,9 +58,38 @@ class GroupController extends Controller
 
     public function show(Group $group): View
     {
-        $group->load(['course', 'teacher', 'students', 'academicYear']);
+        $group->load([
+            'course',
+            'teacher',
+            'students',
+            'academicYear',
+            'lessons' => fn ($query) => $query
+                ->orderBy('week_number')
+                ->orderBy('lesson_date')
+                ->orderBy('day_of_week')
+                ->orderBy('start_time'),
+        ]);
 
-        return view('groups.show', compact('group'));
+        $lessons = $group->lessons;
+
+        $lessonsByWeek = $lessons
+            ->groupBy(fn (Lesson $lesson) => $lesson->week_number ?? 1)
+            ->sortKeys(SORT_NUMERIC)
+            ->map(fn ($weekLessons) => $weekLessons->values());
+
+        $today = Carbon::today();
+
+        $nextLesson = $lessons->first(function (Lesson $lesson) use ($today) {
+            return ! $lesson->is_completed
+                && $lesson->lesson_date
+                && $lesson->lesson_date->greaterThanOrEqualTo($today);
+        });
+
+        return view('groups.show', [
+            'group' => $group,
+            'lessonsByWeek' => $lessonsByWeek,
+            'nextLesson' => $nextLesson,
+        ]);
     }
 
     public function edit(Group $group): View
