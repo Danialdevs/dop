@@ -38,11 +38,7 @@
                         Расписание группы
                     </span>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <a href="{{ route('journal.index', ['group_id' => $group->id]) }}" class="nav-link text-sm fw-semibold">
-                        Журнал посещаемости
-                    </a>
-                </li>
+
             </ul>
         </div>
         <div class="px-24 pb-24">
