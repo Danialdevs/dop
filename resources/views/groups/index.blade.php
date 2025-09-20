@@ -18,13 +18,15 @@
 @section('content')
     @include('partials.flash')
 
+    @php($columnWidth = '234.672px')
+
     <div class="card overflow-hidden">
         <div class="card-body p-0 overflow-x-auto">
             <table id="groupsTable" class="table table-striped dataTable w-100">
                 <colgroup>
-                    <col data-dt-column="0" style="width: 234.672px;">
-                    <col data-dt-column="1" style="width: 234.672px;">
-                    <col data-dt-column="2" style="width: 234.672px;">
+                    <col data-dt-column="0" style="width: {{ $columnWidth }};">
+                    <col data-dt-column="1" style="width: {{ $columnWidth }};">
+                    <col data-dt-column="2" style="width: {{ $columnWidth }};">
                 </colgroup>
                 <thead>
                     <tr role="row">
@@ -92,13 +94,16 @@
                 return;
             }
 
+            const columnWidth = @json($columnWidth);
+
             new DataTable(tableEl, {
                 paging: true,
                 searching: true,
                 info: false,
                 lengthChange: false,
                 columnDefs: [
-                    { orderable: false, targets: [2] },
+                    { width: columnWidth, targets: [0, 1] },
+                    { orderable: false, width: columnWidth, targets: [2] },
                 ],
                 language: {
                     search: 'Поиск:',
