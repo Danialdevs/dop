@@ -1,16 +1,16 @@
 @extends('welcome')
 
-@section('title', 'Новый ученик')
-@section('page_title', 'Добавление ученика')
+@section('title', 'Новый учитель')
+@section('page_title', 'Добавление учителя')
 
 @section('page_actions')
-    <a href="{{ route('students.index') }}" class="btn btn-outline-gray">Назад к списку</a>
+    <a href="{{ route('teachers.index') }}" class="btn btn-outline-gray">Назад к списку</a>
 @endsection
 
 @section('content')
     @include('partials.flash')
 
-    <form action="{{ route('students.store') }}" method="POST" class="bg-white border border-gray-100 rounded-16 p-24">
+    <form action="{{ route('teachers.store') }}" method="POST" class="bg-white border border-gray-100 rounded-16 p-24">
         @csrf
 
         <div class="row g-4">
@@ -52,7 +52,7 @@
 
         <div class="mt-24 d-flex gap-12">
             <button type="submit" class="btn btn-main">Сохранить</button>
-            <a href="{{ route('students.index') }}" class="btn btn-outline-gray">Отмена</a>
+            <a href="{{ route('teachers.index') }}" class="btn btn-outline-gray">Отмена</a>
         </div>
     </form>
 @endsection
