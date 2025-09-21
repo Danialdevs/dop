@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\User;
 
 class Lesson extends Model
 {
     protected $fillable = [
         'group_id',
+        'teacher_id',
         'lesson_date',
         'day_of_week',
         'start_time',
@@ -34,6 +36,11 @@ class Lesson extends Model
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class);
+    }
+
+    public function teacher(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'teacher_id');
     }
 
     public function getFormattedDateAttribute(): string

@@ -35,18 +35,41 @@
             </div>
 
             <div class="col-md-6">
-                <label class="form-label fw-semibold">Пароль *</label>
-                <input type="password" name="password" class="form-control" required>
-            </div>
-
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Подтверждение пароля *</label>
-                <input type="password" name="password_confirmation" class="form-control" required>
-            </div>
-
-            <div class="col-md-6">
                 <label class="form-label fw-semibold">Дата рождения</label>
                 <input type="date" name="birth_date" value="{{ old('birth_date') }}" class="form-control">
+            </div>
+
+            <div class="col-12 mt-12">
+                <h6 class="fw-semibold text-gray-500 mb-8">Данные приказа</h6>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Приказ № *</label>
+                <input type="text" name="enrollment_order_number" value="{{ old('enrollment_order_number') }}" class="form-control" required>
+                @error('enrollment_order_number')
+                    <div class="text-danger-500 text-sm mt-2">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Дата приказа *</label>
+                <input type="date" name="enrollment_order_date" value="{{ old('enrollment_order_date') }}" class="form-control" required>
+                @error('enrollment_order_date')
+                    <div class="text-danger-500 text-sm mt-2">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Тип приказа *</label>
+                <select name="enrollment_order_type" class="form-select" required>
+                    <option value="">Выберите тип</option>
+                    @foreach ($orderTypes as $value => $label)
+                        <option value="{{ $value }}" @selected(old('enrollment_order_type') === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
+                @error('enrollment_order_type')
+                    <div class="text-danger-500 text-sm mt-2">{{ $message }}</div>
+                @enderror
             </div>
         </div>
 

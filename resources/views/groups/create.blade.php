@@ -48,7 +48,7 @@
                 <select name="academic_year_id" class="form-select">
                     <option value="">Не выбран</option>
                     @foreach ($academicYears as $year)
-                        <option value="{{ $year->id }}" @selected(old('academic_year_id') == $year->id)>
+                        <option value="{{ $year->id }}" @selected(old('academic_year_id', $selectedAcademicYearId) == $year->id)>
                             {{ $year->name }}
                         </option>
                     @endforeach

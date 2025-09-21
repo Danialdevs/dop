@@ -14,10 +14,12 @@ class School extends Model
         'phone',
         'email',
         'is_active',
+        'allowed_grade_systems',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'allowed_grade_systems' => 'array',
     ];
 
     public function users(): HasMany

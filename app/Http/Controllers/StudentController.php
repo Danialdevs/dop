@@ -21,7 +21,9 @@ class StudentController extends Controller
 
     public function create(): View
     {
-        return view('students.create');
+        return view('students.create', [
+            'orderTypes' => $this->orderTypes(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -30,37 +32,59 @@ class StudentController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'iin' => ['required', 'string', 'regex:/^\d{12}$/', 'unique:users,iin'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
             'phone' => ['nullable', 'string', 'max:50'],
             'birth_date' => ['nullable', 'date'],
+            'enrollment_order_number' => ['required', 'string', 'max:255'],
+            'enrollment_order_date' => ['required', 'date'],
+            'enrollment_order_type' => ['required', 'string', 'in:' . implode(',', array_keys($this->orderTypes()))],
         ]);
 
-        User::create([
+        $temporaryPassword = $this->generatePassword();
+
+        $student = User::create([
             'name' => $validated['name'],
             'iin' => $validated['iin'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make($temporaryPassword),
             'role' => 'student',
             'phone' => $validated['phone'] ?? null,
             'birth_date' => $validated['birth_date'] ?? null,
             'is_active' => true,
         ]);
 
-        return redirect()->route('students.index')->with('status', 'Ученик создан.');
+        $student->orders()->create([
+            'order_number' => $validated['enrollment_order_number'],
+            'order_date' => $validated['enrollment_order_date'],
+            'order_type' => $validated['enrollment_order_type'],
+        ]);
+
+        return redirect()->route('students.index')->with('status', "Ученик создан. Временный пароль: {$temporaryPassword}");
     }
 
     public function show(User $student): View
     {
         abort_unless($student->role === 'student', 404);
 
-        return view('students.show', compact('student'));
+        $student->load('orders');
+
+        return view('students.show', [
+            'student' => $student,
+            'orderTypes' => $this->orderTypes(),
+            'order' => $student->orders->sortByDesc('order_date')->first(),
+        ]);
     }
 
     public function edit(User $student): View
     {
         abort_unless($student->role === 'student', 404);
 
-        return view('students.edit', compact('student'));
+        $order = $student->orders()->orderByDesc('order_date')->first();
+
+        return view('students.edit', [
+            'student' => $student,
+            'orderTypes' => $this->orderTypes(),
+            'order' => $order,
+        ]);
     }
 
     public function update(Request $request, User $student): RedirectResponse
@@ -73,6 +97,9 @@ class StudentController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $student->id],
             'phone' => ['nullable', 'string', 'max:50'],
             'birth_date' => ['nullable', 'date'],
+            'enrollment_order_number' => ['required', 'string', 'max:255'],
+            'enrollment_order_date' => ['required', 'date'],
+            'enrollment_order_type' => ['required', 'string', 'in:' . implode(',', array_keys($this->orderTypes()))],
         ]);
 
         $student->update([
@@ -82,6 +109,22 @@ class StudentController extends Controller
             'phone' => $validated['phone'] ?? null,
             'birth_date' => $validated['birth_date'] ?? null,
         ]);
+
+        $order = $student->orders()->orderByDesc('order_date')->first();
+
+        if ($order) {
+            $order->update([
+                'order_number' => $validated['enrollment_order_number'],
+                'order_date' => $validated['enrollment_order_date'],
+                'order_type' => $validated['enrollment_order_type'],
+            ]);
+        } else {
+            $student->orders()->create([
+                'order_number' => $validated['enrollment_order_number'],
+                'order_date' => $validated['enrollment_order_date'],
+                'order_type' => $validated['enrollment_order_type'],
+            ]);
+        }
 
         return redirect()->route('students.index')->with('status', 'Ученик обновлён.');
     }
@@ -115,5 +158,26 @@ class StudentController extends Controller
         $student->delete();
 
         return redirect()->route('students.index')->with('status', 'Ученик удален.');
+    }
+
+    private function orderTypes(): array
+    {
+        return [
+            'enrollment' => 'Приказ о зачислении в ОО',
+            'group_formation' => 'Приказ о формировании группы',
+        ];
+    }
+
+    private function generatePassword(int $length = 12): string
+    {
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
+        $password = '';
+        $maxIndex = strlen($alphabet) - 1;
+
+        for ($i = 0; $i < $length; $i++) {
+            $password .= $alphabet[random_int(0, $maxIndex)];
+        }
+
+        return $password;
     }
 }

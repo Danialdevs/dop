@@ -16,11 +16,17 @@ class GroupController extends Controller
 {
     public function index(): View
     {
+        $selectedAcademicYearId = session('academic_year_id');
+
         $groups = Group::with(['course', 'teacher', 'academicYear', 'students'])
+            ->when($selectedAcademicYearId, fn ($query) => $query->where('academic_year_id', $selectedAcademicYearId))
             ->latest()
             ->get();
 
-        return view('groups.index', compact('groups'));
+        return view('groups.index', [
+            'groups' => $groups,
+            'selectedAcademicYearId' => $selectedAcademicYearId,
+        ]);
     }
 
     public function create(): View
@@ -29,8 +35,9 @@ class GroupController extends Controller
         $teachers = User::where('role', 'teacher')->orderBy('name')->get();
         $students = User::where('role', 'student')->orderBy('name')->get();
         $academicYears = AcademicYear::orderByDesc('start_date')->get();
+        $selectedAcademicYearId = session('academic_year_id');
 
-        return view('groups.create', compact('courses', 'teachers', 'students', 'academicYears'));
+        return view('groups.create', compact('courses', 'teachers', 'students', 'academicYears', 'selectedAcademicYearId'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -48,6 +55,10 @@ class GroupController extends Controller
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
+
+        if (! $validated['academic_year_id']) {
+            $validated['academic_year_id'] = session('academic_year_id');
+        }
 
         $group = Group::create($validated);
 
@@ -85,10 +96,40 @@ class GroupController extends Controller
                 && $lesson->lesson_date->greaterThanOrEqualTo($today);
         });
 
+        $weekStart = Carbon::parse(request('week', $today))->startOfWeek(Carbon::MONDAY);
+        $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY);
+        $weekDays = collect(range(0, 6))->map(fn ($offset) => $weekStart->copy()->addDays($offset));
+
+        $currentWeekLessons = $lessons
+            ->filter(function (Lesson $lesson) use ($weekStart, $weekEnd) {
+                if (! $lesson->lesson_date) {
+                    return false;
+                }
+
+                return $lesson->lesson_date->greaterThanOrEqualTo($weekStart)
+                    && $lesson->lesson_date->lessThanOrEqualTo($weekEnd);
+            })
+            ->groupBy(fn (Lesson $lesson) => $lesson->lesson_date->toDateString());
+
+        $currentWeekCount = $currentWeekLessons->sum(fn ($dayLessons) => $dayLessons->count());
+        $isCurrentWeek = $weekStart->isSameWeek($today, Carbon::MONDAY);
+
+        $teachers = User::where('role', 'teacher')->orderBy('name')->get();
+
         return view('groups.show', [
             'group' => $group,
             'lessonsByWeek' => $lessonsByWeek,
             'nextLesson' => $nextLesson,
+            'activeTab' => request('tab', 'overview'),
+            'weekStart' => $weekStart,
+            'weekEnd' => $weekEnd,
+            'weekDays' => $weekDays,
+            'currentWeekLessons' => $currentWeekLessons,
+            'prevWeekStart' => $weekStart->copy()->subWeek(),
+            'nextWeekStart' => $weekStart->copy()->addWeek(),
+            'currentWeekCount' => $currentWeekCount,
+            'isCurrentWeek' => $isCurrentWeek,
+            'teachers' => $teachers,
         ]);
     }
 
@@ -100,7 +141,9 @@ class GroupController extends Controller
         $students = User::where('role', 'student')->orderBy('name')->get();
         $academicYears = AcademicYear::orderByDesc('start_date')->get();
 
-        return view('groups.edit', compact('group', 'courses', 'teachers', 'students', 'academicYears'));
+        $selectedAcademicYearId = session('academic_year_id');
+
+        return view('groups.edit', compact('group', 'courses', 'teachers', 'students', 'academicYears', 'selectedAcademicYearId'));
     }
 
     public function update(Request $request, Group $group): RedirectResponse

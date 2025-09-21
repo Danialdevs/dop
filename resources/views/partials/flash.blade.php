@@ -1,16 +1,27 @@
-@if (session('status'))
-    <div class="alert alert-success mb-3" role="alert">
-        {{ session('status') }}
-    </div>
-@endif
+@php
+    $flashMessages = [];
 
-@if ($errors->any())
-    <div class="alert alert-danger" role="alert">
-        <div class="fw-semibold mb-1">Проверьте введенные данные:</div>
-        <ul class="mb-0 ps-3">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
+    if (session('status')) {
+        $flashMessages[] = [
+            'type' => 'success',
+            'title' => 'Готово',
+            'messages' => [session('status')],
+        ];
+    }
+
+    if ($errors->any()) {
+        $flashMessages[] = [
+            'type' => 'danger',
+            'title' => 'Проверьте введённые данные',
+            'messages' => $errors->all(),
+        ];
+    }
+@endphp
+
+@if (! empty($flashMessages))
+    @push('scripts')
+        <script>
+            window.__FLASH_QUEUE = (window.__FLASH_QUEUE || []).concat(@json($flashMessages, JSON_UNESCAPED_UNICODE));
+        </script>
+    @endpush
 @endif

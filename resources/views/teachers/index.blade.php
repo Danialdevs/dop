@@ -54,19 +54,11 @@
                 </thead>
                 <tbody>
                     @forelse ($teachers as $teacher)
-                        @php
-                            $initial = mb_strtoupper(mb_substr($teacher->name, 0, 1));
-                        @endphp
                         <tr>
                             <td>
-                                <div class="flex-align gap-8">
-                                    <span class="w-40 h-40 rounded-circle bg-main-50 text-main-600 fw-semibold flex-center text-sm">
-                                        {{ $initial }}
-                                    </span>
-                                    <div>
-                                        <a href="{{ route('teachers.show', $teacher) }}" class="h6 mb-0 fw-medium text-gray-900">{{ $teacher->name }}</a>
-                                        <div class="text-13 text-gray-300">{{ $teacher->email }}</div>
-                                    </div>
+                                <div class="d-flex flex-column">
+                                    <a href="{{ route('teachers.show', $teacher) }}" class="h6 mb-0 fw-medium text-gray-900">{{ $teacher->name }}</a>
+                                    <span class="text-13 text-gray-300">{{ $teacher->email }}</span>
                                 </div>
                             </td>
                             <td>
