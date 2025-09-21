@@ -111,9 +111,13 @@
             <div class="px-24 pb-24">
                 @if ($students->isEmpty())
                     <p class="text-gray-200 mb-0">В группе пока нет учеников. Добавьте их, чтобы вести журнал посещаемости.</p>
-                @elseif (! $selectedLesson)
+                @endif
+
+                @if ($students->isNotEmpty() && ! $selectedLesson)
                     <p class="text-gray-200 mb-0">Для выбранной группы ещё нет занятий. Создайте расписание, чтобы отмечать посещаемость.</p>
-                @else
+                @endif
+
+                @if ($students->isNotEmpty() && $selectedLesson)
                     <div class="d-flex flex-wrap gap-12 align-items-center mb-20">
                         <span class="badge rounded-pill bg-success-100 text-success-600">Присутствуют: <span data-attendance-present>0</span></span>
                         <span class="badge rounded-pill bg-danger-100 text-danger-600">Отсутствуют: <span data-attendance-absent>0</span></span>
@@ -163,7 +167,9 @@
                 @endif
             </div>
         </div>
-    @else
+    @endif
+
+    @if (! $selectedGroup)
         <div class="bg-white border border-dashed border-gray-100 rounded-16 p-32 text-center text-gray-200">
             Выберите группу, чтобы открыть журнал посещаемости.
         </div>
